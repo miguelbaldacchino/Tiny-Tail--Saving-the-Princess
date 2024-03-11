@@ -3,9 +3,11 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float speed;
+    [SerializeField] private LayerMask groundLayer;
+
     private Rigidbody2D body;
     private Animator anim;
-    private bool grounded;
+    private BoxCollider2D boxCollider;
     private float horizontalInput; // Move the declaration here
 
 
@@ -14,6 +16,8 @@ public class PlayerMovement : MonoBehaviour
         // Grabs references for rigidbody and animator from object
         body = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+
+        boxCollider = GetComponent<BoxCollider2D>();
     }
 
     private void Update()
@@ -28,29 +32,28 @@ public class PlayerMovement : MonoBehaviour
             transform.localScale = new Vector3(3, 3, 3);
 
         // Jump
-        if(Input.GetKey(KeyCode.Space) && grounded)
+        if(Input.GetKey(KeyCode.Space) && isGrounded())
             Jump();
 
         // Set animator parameters
         anim.SetBool("run", horizontalInput != 0);
-        anim.SetBool("grounded", grounded);
+        anim.SetBool("grounded", isGrounded());
     }
 
     private void Jump()
     {
         body.velocity = new Vector2(body.velocity.x, speed/2);
         anim.SetTrigger("jump");
-        grounded = false;
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private bool isGrounded() 
     {
-        if(collision.gameObject.tag == "Ground")
-            grounded = true;
-    } 
+        RaycastHit2D raycastHit = Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0, Vector2.down, 0.1f, groundLayer);
+        return raycastHit.collider != null;
+    }
 
     public bool canAttack()
     {
-        return horizontalInput == 0 && grounded;
+        return horizontalInput == 0 && isGrounded();
     }
 }
