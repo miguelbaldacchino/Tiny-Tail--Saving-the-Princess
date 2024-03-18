@@ -13,12 +13,14 @@ public class PlayerMovement : MonoBehaviour
     private float horizontalInput;
 
     private void Awake()
-    {
-        //Grab references for rigidbody and animator from object
-        body = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>();
-        boxCollider = GetComponent<BoxCollider2D>();
-    }
+{
+    //Grab references for rigidbody and animator from object
+    body = GetComponent<Rigidbody2D>();
+    body.collisionDetectionMode = CollisionDetectionMode2D.Continuous; // Enable continuous collision detection
+    anim = GetComponent<Animator>();
+    boxCollider = GetComponent<BoxCollider2D>();
+}
+
 
     private void Update()
     {
@@ -75,12 +77,21 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+private bool isGrounded()
+{
+    // Define the size of the box overlap area
+    Vector2 boxSize = new Vector2(boxCollider.bounds.size.x - 0.1f, 0.1f);
+    
+    // Define the center of the box overlap area
+    Vector2 boxCenter = new Vector2(boxCollider.bounds.center.x, boxCollider.bounds.min.y - 0.01f);
 
-    private bool isGrounded()
-    {
-        RaycastHit2D raycastHit = Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0, Vector2.down, 0.1f, groundLayer);
-        return raycastHit.collider != null;
-    }
+    // Check for any colliders within the box overlap area on the ground layer
+    Collider2D[] colliders = Physics2D.OverlapBoxAll(boxCenter, boxSize, 0, groundLayer);
+
+    // Check if any colliders were found (player is grounded)
+    return colliders.Length > 0;
+}
+
     private bool onWall()
     {
         RaycastHit2D raycastHit = Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0, new Vector2(transform.localScale.x, 0), 0.1f, wallLayer);
